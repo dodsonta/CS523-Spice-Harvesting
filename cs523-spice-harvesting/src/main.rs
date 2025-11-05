@@ -2,8 +2,8 @@ mod item;
 use item::Item;
 mod gamestate;
 use gamestate::GameState;
-use std::time::{SystemTime};
 use std::io::{self, Write};
+use std::time::SystemTime;
 
 fn main() {
     let items = vec![
@@ -18,20 +18,22 @@ fn main() {
         print!("Enter Command: ");
         io::stdout().flush().unwrap();
         input.clear();
-        io::stdin().read_line(&mut input).expect("Failed to read line");
+        io::stdin()
+            .read_line(&mut input)
+            .expect("Failed to read line");
         let input = input.trim();
         match input {
             "" => {
                 game_state.update_spice_by_flat(1);
                 game_state.update_spice(&mut curr_time);
-            }, 
+            }
             "exit" => break,
             "Inventory" => {
                 game_state.list_inventory();
-            },
+            }
             _ => {
                 println!("Unknown command");
-            },
+            }
         }
         println!("Spice: {}", game_state.get_spice());
     }

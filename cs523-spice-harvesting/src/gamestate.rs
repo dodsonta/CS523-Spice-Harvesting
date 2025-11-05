@@ -1,5 +1,5 @@
-use crate::item::{self, Item};
-use std::time::{SystemTime};
+use crate::item::Item;
+use std::time::SystemTime;
 
 pub struct GameState {
     //Represents the amount of spice the player has
@@ -10,10 +10,7 @@ pub struct GameState {
 
 impl GameState {
     pub fn new(items: Vec<Item>) -> GameState {
-        GameState {
-            spice: 0,
-            items,
-        }
+        GameState { spice: 0, items }
     }
 
     pub fn get_spice(&self) -> u64 {
@@ -53,7 +50,7 @@ impl GameState {
 mod tests {
     use super::*;
     #[test]
-    fn test_cps(){
+    fn test_cps() {
         let items = vec![
             Item::new("Tools", 0, 1, 10),
             Item::new("Fremen", 0, 2, 50),

@@ -15,9 +15,6 @@ impl Item {
         }
     }
 
-    pub fn name(&self) -> &str {
-        &self.name
-    }
     pub fn amt(&self) -> u32 {
         self.amt
     }
@@ -33,6 +30,13 @@ impl Item {
             self.name, self.amt, self.worth
         )
     }
+
+    pub fn info_in_shop(&self) -> String {
+        format!(
+            "{}: Cost: {}, Clicks per second: {}",
+            self.name, self.cost, self.worth
+        )
+    }
 }
 
 #[cfg(test)]
@@ -42,7 +46,6 @@ mod tests {
     #[test]
     fn test_creation() {
         let test_item = Item::new("TestItem", 5, 10, 2);
-        assert_eq!(test_item.name(), "TestItem");
         assert_eq!(test_item.amt(), 5);
         assert_eq!(test_item.worth(), 10);
         assert_eq!(test_item.cost(), 2);
