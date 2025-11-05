@@ -18,11 +18,23 @@ impl GameState {
     }
 
     pub fn list_inventory(&self) {
+        if self.items.iter().all(|item| item.amt() == 0) {
+            println!("Inventory is empty");
+            return;
+        }
         for item in self.items.iter() {
             if item.amt() == 0 {
                 continue;
             }
             println!("{}", item.info_in_inventory());
+        }
+    }
+
+    pub fn list_shop(&self) {
+        let mut idx = 1;
+        for item in self.items.iter() {
+            println!("{}. {}", idx, item.info_in_shop());
+            idx += 1;
         }
     }
 
@@ -43,6 +55,21 @@ impl GameState {
         let duration = curr_time.duration_since(*initial_time).unwrap().as_secs();
         let cps: u64 = self.calculate_cps().into();
         self.spice += cps * duration;
+    }
+
+    pub fn num_items(&self) -> usize {
+        self.items.len()
+    }
+
+    pub fn buy_item(&mut self, item_index: usize) {
+        let item = &mut self.items[item_index];
+        if item.cost() as u64 > self.spice {
+            println!("Not enough spice to purchase {}", item.info_in_shop());
+        } else {
+            self.spice -= item.cost() as u64;
+            item.purchase();
+            println!("Purchased {}", item.info_in_shop());
+        }
     }
 }
 

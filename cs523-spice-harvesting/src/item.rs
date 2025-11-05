@@ -37,6 +37,10 @@ impl Item {
             self.name, self.cost, self.worth
         )
     }
+
+    pub fn purchase(&mut self) {
+        self.amt += 1;
+    }
 }
 
 #[cfg(test)]
@@ -56,5 +60,12 @@ mod tests {
         let test_item = Item::new("TestItem", 2, 10, 2);
         let info = test_item.info_in_inventory();
         assert_eq!(info, "TestItem: Amount Owned: 2, Clicks per second: 10");
+    }
+
+    #[test]
+    fn test_info_in_shop() {
+        let test_item = Item::new("TestItem", 2, 10, 2);
+        let info = test_item.info_in_shop();
+        assert_eq!(info, "TestItem: Cost: 2, Clicks per second: 10");
     }
 }
