@@ -4,14 +4,38 @@ mod gamestate;
 use gamestate::GameState;
 use std::io::{self, Write};
 use std::time::SystemTime;
+use std::fs::File;
+
+fn save_game(game_state: &GameState) {
+    // Placeholder for save functionality
+    let file = File::create("savegame.json").expect("Unable to open or create file");
+    serde_json::to_writer(file, game_state).expect("Unable to write game state to file");
+}
+
+fn load_game() -> Option<GameState> {
+    let file = File::open("savegame.json").ok()?;
+    let game_state: GameState = serde_json::from_reader(file).ok()?;
+    Some(game_state)
+}
 
 fn main() {
-    let items = vec![
-        Item::new("Tools", 0, 1, 10),
-        Item::new("Fremen", 0, 2, 50),
-        Item::new("Spice Harvester", 0, 10, 500),
-    ];
-    let mut game_state = GameState::new(items);
+    let mut game_state = match load_game() {
+        Some(state) => state,
+        None => {
+            let items = vec![
+                Item::new("Tools", 0, 1, 10),
+                Item::new("Fremen", 0, 2, 50),
+                Item::new("Spice Harvester", 0, 10, 500),
+            ];
+            GameState::new(items)
+        }
+    };
+    // let items = vec![
+    //     Item::new("Tools", 0, 1, 10),
+    //     Item::new("Fremen", 0, 2, 50),
+    //     Item::new("Spice Harvester", 0, 10, 500),
+    // ];
+    // let mut game_state = GameState::new(items);
     let mut curr_time = SystemTime::now();
     let mut input = String::new();
     loop {
@@ -54,7 +78,13 @@ fn main() {
                     }
                 }
             },
-            "exit" => break,
+            "exit" => {
+                save_game(&game_state);
+                break;
+            },
+            "save" => {
+                save_game(&game_state);
+            },
             _ => {
                 println!("Unknown command");
             }
