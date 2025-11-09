@@ -2,12 +2,11 @@ mod item;
 use item::Item;
 mod gamestate;
 use gamestate::GameState;
+use std::fs::File;
 use std::io::{self, Write};
 use std::time::SystemTime;
-use std::fs::File;
 
 fn save_game(game_state: &GameState) {
-    // Placeholder for save functionality
     let file = File::create("savegame.json").expect("Unable to open or create file");
     serde_json::to_writer(file, game_state).expect("Unable to write game state to file");
 }
@@ -19,23 +18,20 @@ fn load_game() -> Option<GameState> {
 }
 
 fn main() {
+    //Check if there's a save, if not start new game
     let mut game_state = match load_game() {
         Some(state) => state,
         None => {
             let items = vec![
-                Item::new("Tools", 0, 1, 10),
-                Item::new("Fremen", 0, 2, 50),
-                Item::new("Spice Harvester", 0, 10, 500),
+                Item::new("Tools", 0, 0.1, 15),
+                Item::new("Fremen", 0, 1.0, 100),
+                Item::new("Ornithopter", 0, 8.0, 1100),
+                Item::new("Spice Harvester", 0, 47.0, 12000),
+                Item::new("Sietch", 0, 260.0, 130000),
             ];
             GameState::new(items)
         }
     };
-    // let items = vec![
-    //     Item::new("Tools", 0, 1, 10),
-    //     Item::new("Fremen", 0, 2, 50),
-    //     Item::new("Spice Harvester", 0, 10, 500),
-    // ];
-    // let mut game_state = GameState::new(items);
     let mut curr_time = SystemTime::now();
     let mut input = String::new();
     loop {
@@ -59,7 +55,9 @@ fn main() {
                 print!("Enter item number to purchase or press Enter to cancel: ");
                 io::stdout().flush().unwrap();
                 input.clear();
-                io::stdin().read_line(&mut input).expect("Failed to read line");
+                io::stdin()
+                    .read_line(&mut input)
+                    .expect("Failed to read line");
                 let input = input.trim();
                 if input.is_empty() {
                     continue;
@@ -72,19 +70,19 @@ fn main() {
                             continue;
                         }
                         game_state.buy_item(i - 1);
-                    },
+                    }
                     Err(_) => {
                         println!("Invalid input");
                     }
                 }
-            },
+            }
             "exit" => {
                 save_game(&game_state);
                 break;
-            },
+            }
             "save" => {
                 save_game(&game_state);
-            },
+            }
             _ => {
                 println!("Unknown command");
             }
