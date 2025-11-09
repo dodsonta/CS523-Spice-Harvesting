@@ -17,6 +17,10 @@ impl Item {
         }
     }
 
+    pub fn name(&self) -> &str {
+        &self.name
+    }
+
     pub fn amt(&self) -> u32 {
         self.amt
     }

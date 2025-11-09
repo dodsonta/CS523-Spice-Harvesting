@@ -1,6 +1,6 @@
 use crate::item::Item;
 use serde::{Deserialize, Serialize};
-use std::time::SystemTime;
+use std::time::{SystemTime, UNIX_EPOCH};
 
 #[derive(Serialize, Deserialize)]
 pub struct GameState {
@@ -9,6 +9,7 @@ pub struct GameState {
     //Represents the items the player can purchase
     items: Vec<Item>,
     cps: f64,
+    time_last_updated: f64,
 }
 
 impl GameState {
@@ -17,11 +18,20 @@ impl GameState {
             spice: 0.0,
             items,
             cps: 0.0,
+            //Need to do it this way so I can serialize the time easily
+            time_last_updated: SystemTime::now()
+                .duration_since(UNIX_EPOCH)
+                .unwrap()
+                .as_secs_f64(),
         }
     }
 
     pub fn get_spice(&self) -> f64 {
         self.spice
+    }
+
+    pub fn get_cps(&self) -> f64 {
+        self.cps
     }
 
     pub fn list_inventory(&self) {
@@ -51,19 +61,27 @@ impl GameState {
             temp_cps += item.amt() as f64 * item.worth();
         }
         self.cps = temp_cps;
+        //Rounding to 2 decimal places since getting very long floats otherwise
+        self.cps = (self.cps * 100.0).round() / 100.0;
     }
 
     pub fn update_spice_by_flat(&mut self, increase: u64) {
         self.spice += increase as f64;
     }
 
-    pub fn update_spice(&mut self, initial_time: &mut SystemTime) {
-        let curr_time = SystemTime::now();
-        let duration = curr_time.duration_since(*initial_time).unwrap().as_secs();
-        *initial_time = curr_time;
+    pub fn update_spice(&mut self) {
+        let curr_time = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_secs_f64();
+        let duration = curr_time - self.time_last_updated;
+        self.time_last_updated = curr_time;
         self.calculate_cps();
         let cps = self.cps;
-        self.spice += cps * duration as f64;
+        self.spice += cps * duration;
+
+        //Rounding to 1 decimal places since getting very long floats otherwise
+        self.spice = (self.spice * 10.0).round() / 10.0;
     }
 
     pub fn num_items(&self) -> usize {
@@ -73,11 +91,11 @@ impl GameState {
     pub fn buy_item(&mut self, item_index: usize) {
         let item = &mut self.items[item_index];
         if item.cost() as f64 > self.spice {
-            println!("Not enough spice to purchase {}", item.info_in_shop());
+            println!("Not enough spice to purchase {}", item.name());
         } else {
             self.spice -= item.cost() as f64;
             item.purchase();
-            println!("Purchased {}", item.info_in_shop());
+            println!("Purchased {}", item.name());
         }
     }
 }
@@ -122,9 +140,8 @@ mod tests {
         ];
         let mut game_state = GameState::new(items);
         game_state.update_spice_by_flat(100);
-        let mut initial_time = SystemTime::now();
         std::thread::sleep(std::time::Duration::from_secs(2));
-        game_state.update_spice(&mut initial_time);
+        game_state.update_spice();
         assert!(game_state.get_spice() >= 102.0);
     }
 }
