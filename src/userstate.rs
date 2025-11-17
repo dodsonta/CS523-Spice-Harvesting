@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use std::time::{SystemTime, UNIX_EPOCH};
 
 #[derive(Serialize, Deserialize)]
-pub struct GameState {
+pub struct UserState {
     //Represents the amount of spice the player has
     spice: f64,
     //Represents the items the player can purchase
@@ -12,9 +12,9 @@ pub struct GameState {
     time_last_updated: f64,
 }
 
-impl GameState {
-    pub fn new(items: Vec<Item>) -> GameState {
-        GameState {
+impl UserState {
+    pub fn new(items: Vec<Item>) -> UserState {
+        UserState {
             spice: 0.0,
             items,
             cps: 0.0,
@@ -110,7 +110,7 @@ mod tests {
             Item::new("Fremen", 0, 2.0, 50),
             Item::new("Spice Harvester", 2, 10.0, 500),
         ];
-        let mut game_state = GameState::new(items);
+        let mut game_state = UserState::new(items);
         game_state.calculate_cps();
         assert_eq!(game_state.cps, 21.0);
     }
@@ -122,7 +122,7 @@ mod tests {
             Item::new("Fremen", 0, 2.0, 50),
             Item::new("Spice Harvester", 0, 10.0, 500),
         ];
-        let mut game_state = GameState::new(items);
+        let mut game_state = UserState::new(items);
         game_state.update_spice_by_flat(100);
         game_state.buy_item(0);
         assert_eq!(game_state.get_spice(), 90.0);
@@ -138,7 +138,7 @@ mod tests {
             Item::new("Fremen", 0, 2.0, 50),
             Item::new("Spice Harvester", 0, 10.0, 500),
         ];
-        let mut game_state = GameState::new(items);
+        let mut game_state = UserState::new(items);
         game_state.update_spice_by_flat(100);
         std::thread::sleep(std::time::Duration::from_secs(2));
         game_state.update_spice();
