@@ -69,19 +69,33 @@ impl UserState {
         self.spice += increase as f64;
     }
 
-    pub fn update_spice(&mut self) {
-        let curr_time = SystemTime::now()
-            .duration_since(UNIX_EPOCH)
-            .unwrap()
-            .as_secs_f64();
-        let duration = curr_time - self.time_last_updated;
-        self.time_last_updated = curr_time;
+    pub fn update_spice(&mut self, dt: f64){
+        if !dt.is_finite() || dt <= 0.0 {
+            return;
+        }
         self.calculate_cps();
-        let cps = self.cps;
-        self.spice += cps * duration;
+        self.spice += self.cps * dt;
+    }
 
-        //Rounding to 1 decimal places since getting very long floats otherwise
-        self.spice = (self.spice * 10.0).round() / 10.0;
+    // pub fn update_spice(&mut self) {
+    //     let curr_time = SystemTime::now()
+    //         .duration_since(UNIX_EPOCH)
+    //         .unwrap()
+    //         .as_secs_f64();
+    //     let duration = curr_time - self.time_last_updated;
+    //     self.time_last_updated = curr_time;
+    //     self.update_spice_dt(duration);
+
+    //     //Rounding to 1 decimal places since getting very long floats otherwise
+    //     //self.spice = (self.spice * 10.0).round() / 10.0;
+    // }
+    
+    pub fn get_time_last_updated(&self) -> f64 {
+        self.time_last_updated
+    }
+
+    pub fn set_time_last_updated(&mut self, time: f64) {
+        self.time_last_updated = time;
     }
 
     pub fn num_items(&self) -> usize {
