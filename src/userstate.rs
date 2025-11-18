@@ -69,7 +69,7 @@ impl UserState {
         self.spice += increase as f64;
     }
 
-    pub fn update_spice(&mut self, dt: f64){
+    pub fn update_spice(&mut self, dt: f64) {
         if !dt.is_finite() || dt <= 0.0 {
             return;
         }
@@ -89,7 +89,7 @@ impl UserState {
     //     //Rounding to 1 decimal places since getting very long floats otherwise
     //     //self.spice = (self.spice * 10.0).round() / 10.0;
     // }
-    
+
     pub fn get_time_last_updated(&self) -> f64 {
         self.time_last_updated
     }
@@ -154,8 +154,7 @@ mod tests {
         ];
         let mut game_state = UserState::new(items);
         game_state.update_spice_by_flat(100);
-        std::thread::sleep(std::time::Duration::from_secs(2));
-        game_state.update_spice();
+        game_state.update_spice(2.0);
         assert!(game_state.get_spice() >= 102.0);
     }
 }
