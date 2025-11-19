@@ -75,9 +75,11 @@ impl ggez::event::EventHandler for GameState {
     }
     //Drawing text is based on ggez examples hello_world.rs
     fn draw(&mut self, ctx: &mut Context) -> GameResult {
-        //Drawing the spice and cps info
+        //Create all black canvas 
         let mut canvas = graphics::Canvas::from_frame(ctx, graphics::Color::from_rgb(0, 0, 0));
         let offset = 20.0;
+
+        //Drawing the spice and cps info
         let spice_text = format!(
             "Spice: {:.2}\nClicks per second: {:.2}\n(Press ESC to exit)",
             self.user.get_spice(),
@@ -89,8 +91,27 @@ impl ggez::event::EventHandler for GameState {
             spice_dest_point,
         );
 
+        //Drawing the shop/inventory info
+        if self.shop_mode {
+            let shop_text = self.user.list_shop();
+            let middle_y = offset + 140.0;
+            let middle_pos = ggez::glam::Vec2::new(offset, middle_y);
+            canvas.draw(
+                graphics::Text::new(shop_text).set_scale(32.),
+                middle_pos,
+            );
+        } else {
+            let inventory_text = self.user.list_inventory();
+            let middle_y = offset + 140.0;
+            let middle_pos = ggez::glam::Vec2::new(offset, middle_y);
+            canvas.draw(
+                graphics::Text::new(inventory_text).set_scale(32.),
+                middle_pos,
+            );
+        }
+
         //Draw command prompt
-        let (_w, h) = ctx.gfx.drawable_size();
+        let (_w, h) = ctx.gfx.drawable_size(); //Get height of window
         if self.shop_mode {
             let input_text = format!("Purchase Item Number: {}", self.input);
             let input_dest_point = ggez::glam::Vec2::new(offset, h - offset - 48.);
@@ -154,13 +175,8 @@ impl ggez::event::EventHandler for GameState {
                     save_game(&mut self.user);
                     println!("Game saved.");
                     ctx.request_quit();
-                } else if cmd == "inventory" {
-                    println!("--- Inventory ---");
-                    self.user.list_inventory();
                 } else if cmd == "shop" {
                     self.shop_mode = true;
-                    println!("--- Shop ---");
-                    self.user.list_shop();
                 } else {
                     println!("Unknown command");
                 }
@@ -171,6 +187,17 @@ impl ggez::event::EventHandler for GameState {
             }
             _ => {}
         }
+        Ok(())
+    }
+
+    fn mouse_button_down_event(
+            &mut self,
+            _ctx: &mut Context,
+            _button: event::MouseButton,
+            _x: f32,
+            _y: f32,
+        ) -> Result<(), GameError> {
+        self.user.update_spice_by_flat(1);
         Ok(())
     }
 }

@@ -34,25 +34,41 @@ impl UserState {
         self.cps
     }
 
-    pub fn list_inventory(&self) {
+    // pub fn list_inventory(&self) {
+    //     if self.items.iter().all(|item| item.amt() == 0) {
+    //         println!("Inventory is empty");
+    //         return;
+    //     }
+    //     for item in self.items.iter() {
+    //         if item.amt() == 0 {
+    //             continue;
+    //         }
+    //         println!("{}", item.info_in_inventory());
+    //     }
+    // }
+    pub fn list_inventory(&self) -> String {
+        let mut inventory_text = String::from("---Inventory---\n");
         if self.items.iter().all(|item| item.amt() == 0) {
-            println!("Inventory is empty");
-            return;
+            inventory_text.push_str("Inventory is empty\n");
+            return inventory_text;
         }
         for item in self.items.iter() {
             if item.amt() == 0 {
                 continue;
             }
-            println!("{}", item.info_in_inventory());
+            inventory_text.push_str(&format!("{}\n", item.info_in_inventory()));
         }
+        inventory_text
     }
 
-    pub fn list_shop(&self) {
+    pub fn list_shop(&self) -> String {
+        let mut shop_text = String::from("---Shop---\n");
         let mut idx = 1;
         for item in self.items.iter() {
-            println!("{}. {}", idx, item.info_in_shop());
+            shop_text.push_str(&format!("{}. {}\n", idx, item.info_in_shop()));
             idx += 1;
         }
+        shop_text
     }
 
     pub fn calculate_cps(&mut self) {
@@ -76,19 +92,6 @@ impl UserState {
         self.calculate_cps();
         self.spice += self.cps * dt;
     }
-
-    // pub fn update_spice(&mut self) {
-    //     let curr_time = SystemTime::now()
-    //         .duration_since(UNIX_EPOCH)
-    //         .unwrap()
-    //         .as_secs_f64();
-    //     let duration = curr_time - self.time_last_updated;
-    //     self.time_last_updated = curr_time;
-    //     self.update_spice_dt(duration);
-
-    //     //Rounding to 1 decimal places since getting very long floats otherwise
-    //     //self.spice = (self.spice * 10.0).round() / 10.0;
-    // }
 
     pub fn get_time_last_updated(&self) -> f64 {
         self.time_last_updated
