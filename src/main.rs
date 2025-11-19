@@ -1,12 +1,12 @@
 mod item;
 use item::Item;
 mod userstate;
-use std::fs::File;
-use userstate::UserState;
 use ggez::graphics;
 use ggez::input::keyboard::{KeyCode, KeyInput};
 use ggez::*;
+use std::fs::File;
 use std::time::{SystemTime, UNIX_EPOCH};
+use userstate::UserState;
 
 //I realize ggez has it's own save system, but I already had this implemented before I decided to use ggez
 // and didn't want to figure out how to change it
@@ -75,9 +75,9 @@ impl ggez::event::EventHandler for GameState {
     }
     //Drawing text is based on ggez examples hello_world.rs
     fn draw(&mut self, ctx: &mut Context) -> GameResult {
-        //Create all black canvas 
+        //Create all black canvas
         let mut canvas = graphics::Canvas::from_frame(ctx, graphics::Color::from_rgb(0, 0, 0));
-        let offset = 20.0;
+        let offset = 32.0;
 
         //Drawing the spice and cps info
         let spice_text = format!(
@@ -96,10 +96,7 @@ impl ggez::event::EventHandler for GameState {
             let shop_text = self.user.list_shop();
             let middle_y = offset + 140.0;
             let middle_pos = ggez::glam::Vec2::new(offset, middle_y);
-            canvas.draw(
-                graphics::Text::new(shop_text).set_scale(32.),
-                middle_pos,
-            );
+            canvas.draw(graphics::Text::new(shop_text).set_scale(32.), middle_pos);
         } else {
             let inventory_text = self.user.list_inventory();
             let middle_y = offset + 140.0;
@@ -191,22 +188,24 @@ impl ggez::event::EventHandler for GameState {
     }
 
     fn mouse_button_down_event(
-            &mut self,
-            _ctx: &mut Context,
-            _button: event::MouseButton,
-            _x: f32,
-            _y: f32,
-        ) -> Result<(), GameError> {
+        &mut self,
+        _ctx: &mut Context,
+        _button: event::MouseButton,
+        _x: f32,
+        _y: f32,
+    ) -> Result<(), GameError> {
         self.user.update_spice_by_flat(1);
         Ok(())
     }
 }
 
 pub fn main() {
-    let c = conf::Conf::new();
+    let screen_setup = ggez::conf::WindowSetup::default().title("Spice Harvesting");
+    let window_mode = ggez::conf::WindowMode::default().dimensions(1000.0, 600.0);
     let (mut ctx, event_loop) =
         ContextBuilder::new("spice_harvesting", "Taite Dodson, tdodson@pdx.edu")
-            .default_conf(c)
+            .window_setup(screen_setup)
+            .window_mode(window_mode)
             .build()
             .unwrap();
 
