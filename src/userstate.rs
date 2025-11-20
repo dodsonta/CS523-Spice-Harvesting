@@ -8,11 +8,14 @@ pub struct UserState {
     spice: f64,
     //Represents the items the player can purchase
     items: Vec<Item>,
+    //Current spice per second rate
     cps: f64,
+    //Last time the game was updated, in seconds since epoch
     time_last_updated: f64,
 }
 
 impl UserState {
+    //Initialize new user state to 0 spice, selected items, and 0 cps
     pub fn new(items: Vec<Item>) -> UserState {
         UserState {
             spice: 0.0,
@@ -26,34 +29,43 @@ impl UserState {
         }
     }
 
+    //Gets current spice amount
     pub fn get_spice(&self) -> f64 {
         self.spice
     }
 
+    //Gets current spice per second rate
     pub fn get_cps(&self) -> f64 {
         self.cps
     }
 
-    // pub fn list_inventory(&self) {
-    //     if self.items.iter().all(|item| item.amt() == 0) {
-    //         println!("Inventory is empty");
-    //         return;
-    //     }
-    //     for item in self.items.iter() {
-    //         if item.amt() == 0 {
-    //             continue;
-    //         }
-    //         println!("{}", item.info_in_inventory());
-    //     }
-    // }
+    //Gets last updated time
+    pub fn get_time_last_updated(&self) -> f64 {
+        self.time_last_updated
+    }
+
+    //Sets last updated time
+    pub fn set_time_last_updated(&mut self, time: f64) {
+        self.time_last_updated = time;
+    }
+
+    //Gets number of items
+    pub fn num_items(&self) -> usize {
+        self.items.len()
+    }
+
+    //List items in the user's inventory
     pub fn list_inventory(&self) -> String {
         let mut inventory_text = String::from("---Inventory---\n");
-        if self.items.iter().all(|item| item.amt() == 0) {
+        //If no items, say it's empty and return
+        if self.items.iter().all(|item| item.get_amt() == 0) {
             inventory_text.push_str("Inventory is empty\n");
             return inventory_text;
         }
+
+        //Iterate through items, listing any the user owns at least 1 of
         for item in self.items.iter() {
-            if item.amt() == 0 {
+            if item.get_amt() == 0 {
                 continue;
             }
             inventory_text.push_str(&format!("{}\n", item.info_in_inventory()));
@@ -61,6 +73,7 @@ impl UserState {
         inventory_text
     }
 
+    //List items available in the shop
     pub fn list_shop(&self) -> String {
         let mut shop_text = String::from("---Shop---\n");
         let mut idx = 1;
@@ -71,20 +84,23 @@ impl UserState {
         shop_text
     }
 
+    //Calculates cps based on owned items
     pub fn calculate_cps(&mut self) {
         let mut temp_cps = 0.0;
         for item in self.items.iter() {
-            temp_cps += item.amt() as f64 * item.worth();
+            temp_cps += item.get_amt() as f64 * item.get_worth();
         }
         self.cps = temp_cps;
         //Rounding to 2 decimal places since getting very long floats otherwise
         self.cps = (self.cps * 100.0).round() / 100.0;
     }
 
+    //Updates spice by a flat amount (used for clicks)
     pub fn update_spice_by_flat(&mut self, increase: u64) {
         self.spice += increase as f64;
     }
 
+    //Updates spice based on cps and time difference
     pub fn update_spice(&mut self, dt: f64) {
         if !dt.is_finite() || dt <= 0.0 {
             return;
@@ -93,26 +109,16 @@ impl UserState {
         self.spice += self.cps * dt;
     }
 
-    pub fn get_time_last_updated(&self) -> f64 {
-        self.time_last_updated
-    }
-
-    pub fn set_time_last_updated(&mut self, time: f64) {
-        self.time_last_updated = time;
-    }
-
-    pub fn num_items(&self) -> usize {
-        self.items.len()
-    }
-
+    //Attempts to buy an item from the shop
     pub fn buy_item(&mut self, item_index: usize) {
         let item = &mut self.items[item_index];
-        if item.cost() as f64 > self.spice {
-            println!("Not enough spice to purchase {}", item.name());
+        //Check if enough spice to buy the item
+        if item.get_cost() as f64 > self.spice {
+            println!("Not enough spice to purchase {}", item.get_name());
         } else {
-            self.spice -= item.cost() as f64;
+            self.spice -= item.get_cost() as f64;
             item.purchase();
-            println!("Purchased {}", item.name());
+            println!("Purchased {}", item.get_name());
         }
     }
 }
@@ -143,9 +149,9 @@ mod tests {
         game_state.update_spice_by_flat(100);
         game_state.buy_item(0);
         assert_eq!(game_state.get_spice(), 90.0);
-        assert_eq!(game_state.items[0].amt(), 1);
-        assert_eq!(game_state.items[1].amt(), 0);
-        assert_eq!(game_state.items[2].amt(), 0);
+        assert_eq!(game_state.items[0].get_amt(), 1);
+        assert_eq!(game_state.items[1].get_amt(), 0);
+        assert_eq!(game_state.items[2].get_amt(), 0);
     }
 
     #[test]

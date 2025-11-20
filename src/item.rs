@@ -8,6 +8,7 @@ pub struct Item {
 }
 
 impl Item {
+    //Create new item (all must be hardcoded)
     pub fn new(name: &str, amt: u32, worth: f64, cost: u32) -> Item {
         Item {
             name: name.to_string(),
@@ -17,19 +18,27 @@ impl Item {
         }
     }
 
-    pub fn name(&self) -> &str {
+    //Get name of the item
+    pub fn get_name(&self) -> &str {
         &self.name
     }
 
-    pub fn amt(&self) -> u32 {
+    //Get amount of the item owned
+    pub fn get_amt(&self) -> u32 {
         self.amt
     }
-    pub fn worth(&self) -> f64 {
+
+    //Get worth (cps) of the item
+    pub fn get_worth(&self) -> f64 {
         self.worth
     }
-    pub fn cost(&self) -> u32 {
+
+    //Get cost of the item
+    pub fn get_cost(&self) -> u32 {
         self.cost
     }
+
+    //Get a string with item info for inventory display
     pub fn info_in_inventory(&self) -> String {
         format!(
             "{}: Amount Owned: {}, Clicks per second: {}",
@@ -37,6 +46,7 @@ impl Item {
         )
     }
 
+    //Get a string with item info for shop display
     pub fn info_in_shop(&self) -> String {
         format!(
             "{}: Cost: {}, Clicks per second: {}",
@@ -44,6 +54,7 @@ impl Item {
         )
     }
 
+    //Increases the amount owned by 1 and increases the cost by 15%
     pub fn purchase(&mut self) {
         self.amt += 1;
         self.cost = (self.cost as f64 * 1.15).ceil() as u32;
@@ -57,9 +68,9 @@ mod tests {
     #[test]
     fn test_creation() {
         let test_item = Item::new("TestItem", 5, 10.0, 2);
-        assert_eq!(test_item.amt(), 5);
-        assert_eq!(test_item.worth(), 10.0);
-        assert_eq!(test_item.cost(), 2);
+        assert_eq!(test_item.get_amt(), 5);
+        assert_eq!(test_item.get_worth(), 10.0);
+        assert_eq!(test_item.get_cost(), 2);
     }
 
     #[test]
@@ -80,7 +91,7 @@ mod tests {
     fn test_purchase() {
         let mut test_item = Item::new("TestItem", 2, 10.0, 2);
         test_item.purchase();
-        assert_eq!(test_item.amt(), 3);
-        assert_eq!(test_item.cost(), 3); // 2 * 1.15.ceil() = 3
+        assert_eq!(test_item.get_amt(), 3);
+        assert_eq!(test_item.get_cost(), 3); // 2 * 1.15.ceil() = 3
     }
 }
