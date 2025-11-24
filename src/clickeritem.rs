@@ -16,6 +16,15 @@ impl ClickerItem {
         }
     }
 
+    //Creates a clone of the clicker item
+    pub fn clone(&self) -> ClickerItem {
+        ClickerItem {
+            name: self.name.clone(),
+            multiplier: self.multiplier,
+            cost: self.cost,
+        }
+    }
+
     //Get name of the clicker item
     pub fn get_name(&self) -> &str {
         &self.name
@@ -33,10 +42,7 @@ impl ClickerItem {
 
     //Get a string with clicker item info for inventory display
     pub fn info_in_inventory(&self) -> String {
-        format!(
-            "{}: Click Multiplier: {}",
-            self.name, self.multiplier
-        )
+        format!("{}: Click Multiplier: {}", self.name, self.multiplier)
     }
 
     //Get a string with clicker item info for shop display
@@ -46,7 +52,6 @@ impl ClickerItem {
             self.name, self.cost, self.multiplier
         )
     }
-    
 }
 
 #[cfg(test)]
@@ -68,5 +73,14 @@ mod tests {
         let shop_info = clicker_item.info_in_shop();
         assert_eq!(inventory_info, "Test Clicker: Click Multiplier: 2");
         assert_eq!(shop_info, "Test Clicker: Cost: 100, Click Multiplier: 2");
+    }
+
+    #[test]
+    fn test_clicker_item_clone() {
+        let og_item = ClickerItem::new("Test Clicker", 2.0, 100);
+        let cloned_item = og_item.clone();
+        assert_eq!(cloned_item.get_name(), "Test Clicker");
+        assert_eq!(cloned_item.get_multiplier(), 2.0);
+        assert_eq!(cloned_item.get_cost(), 100);
     }
 }

@@ -160,6 +160,7 @@ impl ggez::event::EventHandler for GameState {
             //If escape, save and quit
             Some(KeyCode::Escape) => {
                 save_game(&mut self.user);
+                println!("Game saved. Exiting...");
                 ctx.request_quit();
             }
             //If enter, process command
@@ -172,11 +173,14 @@ impl ggez::event::EventHandler for GameState {
                     match item_num {
                         Ok(i) => {
                             let total_items = self.user.total_num_items();
-                            if i == 0 || i > total_items { //If invalid item number
+                            if i == 0 || i > total_items {
+                                //If invalid item number
                                 println!("Invalid item number");
-                            } else if i > self.user.num_items() { //If it's a clicker item (Items are listed first)
+                            } else if i > self.user.num_items() {
+                                //If it's a clicker item (Items are listed first)
                                 self.user.buy_clicker_item(i - self.user.num_items() - 1);
-                            } else { //It's a normal item
+                            } else {
+                                //It's a normal item
                                 self.user.buy_item(i - 1);
                             }
                         }
@@ -246,4 +250,53 @@ pub fn main() {
     let state = GameState::new(&mut ctx).expect("Failed to create game state");
     //Run ggez event loop
     event::run(ctx, event_loop, state);
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::path::Path;
+
+    #[test]
+    fn test_game_save_load() {
+        //Backup existing save file if it exists
+        let save_path = Path::new("savegame.json");
+        let old_save_path = Path::new("savegame_backup.json");
+        let backed_up = if save_path.exists() {
+            std::fs::rename(save_path, old_save_path)
+                .expect("Failed to back up existing save file");
+            true
+        } else {
+            false
+        };
+
+        let items = vec![
+            Item::new("Tools", 1, 1.0, 10),
+            Item::new("Fremen", 0, 2.0, 50),
+            Item::new("Spice Harvester", 2, 10.0, 500),
+        ];
+        let clicker_items = vec![
+            ClickerItem::new("CHOAM Charter", 2.0, 100),
+            ClickerItem::new("Guild Satellite", 3.0, 500),
+        ];
+        let mut og_state = UserState::new(items, clicker_items);
+        og_state.update_spice(100.0); //Add some spice by artificially updating 100 seconds
+        save_game(&mut og_state);
+
+        let loaded_state = load_game().expect("Failed to load game state");
+        assert_eq!(loaded_state.get_spice(), og_state.get_spice());
+        assert_eq!(loaded_state.get_sps(), og_state.get_sps());
+        assert_eq!(loaded_state.num_items(), og_state.num_items());
+        assert_eq!(
+            loaded_state.num_clicker_items(),
+            og_state.num_clicker_items()
+        );
+
+        //Clean up test save file
+        std::fs::remove_file(save_path).expect("Failed to remove test save file");
+        //Restore old save file if it was backed up
+        if backed_up {
+            std::fs::rename(old_save_path, save_path).expect("Failed to restore old save file");
+        }
+    }
 }

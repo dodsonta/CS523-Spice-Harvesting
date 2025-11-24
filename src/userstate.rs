@@ -1,5 +1,5 @@
-use crate::item::Item;
 use crate::clickeritem::ClickerItem;
+use crate::item::Item;
 use serde::{Deserialize, Serialize};
 use std::time::{SystemTime, UNIX_EPOCH};
 
@@ -17,6 +17,8 @@ pub struct UserState {
     spc: f64,
     //Last time the game was updated, in seconds since epoch
     time_last_updated: f64,
+    //List of clicker items the user owns, used because clicker items are one-time purchases
+    owned_clicker_items: Vec<ClickerItem>,
 }
 
 impl UserState {
@@ -33,6 +35,7 @@ impl UserState {
                 .duration_since(UNIX_EPOCH)
                 .unwrap()
                 .as_secs_f64(),
+            owned_clicker_items: vec![],
         }
     }
 
@@ -92,7 +95,7 @@ impl UserState {
             }
             inventory_text.push_str(&format!("{}\n", item.info_in_inventory()));
         }
-        for clicker_item in self.clicker_items.iter() {
+        for clicker_item in self.owned_clicker_items.iter() {
             inventory_text.push_str(&format!("{}\n", clicker_item.info_in_inventory()));
         }
         inventory_text
@@ -156,15 +159,13 @@ impl UserState {
         let clicker_item = &mut self.clicker_items[clicker_item_index];
         //Check if enough spice to buy the clicker item
         if clicker_item.get_cost() as f64 > self.spice {
-            println!(
-                "Not enough spice to purchase {}",
-                clicker_item.get_name()
-            );
+            println!("Not enough spice to purchase {}", clicker_item.get_name());
         } else {
             //Purchase the clicker item, set it to owned, and increase spc
             self.spice -= clicker_item.get_cost() as f64;
             self.spc *= clicker_item.get_multiplier();
             println!("Purchased {}", clicker_item.get_name());
+            self.owned_clicker_items.push(clicker_item.clone());
             self.clicker_items.remove(clicker_item_index);
         }
     }
@@ -237,6 +238,7 @@ mod tests {
         assert_eq!(game_state.get_spice(), 100.0);
         assert_eq!(game_state.spc, 2.0);
         assert_eq!(game_state.clicker_items.len(), 1);
+        assert_eq!(game_state.owned_clicker_items.len(), 1);
     }
 
     #[test]
