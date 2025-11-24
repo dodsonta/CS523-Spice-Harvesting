@@ -28,7 +28,7 @@ impl Item {
         self.amt
     }
 
-    //Get worth (cps) of the item
+    //Get worth (sps) of the item
     pub fn get_worth(&self) -> f64 {
         self.worth
     }

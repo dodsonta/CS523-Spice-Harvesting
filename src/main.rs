@@ -1,5 +1,7 @@
 mod item;
 use item::Item;
+mod clickeritem;
+use clickeritem::ClickerItem;
 mod userstate;
 use ggez::graphics;
 use ggez::input::keyboard::{KeyCode, KeyInput};
@@ -59,7 +61,11 @@ impl GameState {
                     Item::new("Spice Harvester", 0, 47.0, 12000),
                     Item::new("Sietch", 0, 260.0, 130000),
                 ];
-                UserState::new(items)
+                let clicker_items = vec![
+                    ClickerItem::new("CHOAM Charter", false, 2.0, 100),
+                    ClickerItem::new("Guild Satellite", false, 3.0, 500),
+                ];
+                UserState::new(items, clicker_items)
             }
         };
         Ok(Self {
@@ -75,7 +81,7 @@ impl ggez::event::EventHandler for GameState {
     //Per-frame update
     fn update(&mut self, ctx: &mut Context) -> GameResult {
         let dt = ctx.time.delta().as_secs_f64();
-        //Update spice every frame based on cps
+        //Update spice every frame based on sps
         self.user.update_spice(dt);
         Ok(())
     }
@@ -87,11 +93,11 @@ impl ggez::event::EventHandler for GameState {
         let top_text_size = 48.0;
         let normal_text_size = 32.0;
 
-        //Drawing the spice and cps info
+        //Drawing the spice and sps info
         let spice_text = format!(
-            "Spice: {:.2}\nClicks per second: {:.2}",
+            "Spice: {:.2}\nSpice per second: {:.2}",
             self.user.get_spice(),
-            self.user.get_cps()
+            self.user.get_sps()
         );
         //Drawing spice info at top left corner
         let spice_pos = ggez::glam::Vec2::new(offset, offset);
@@ -164,9 +170,12 @@ impl ggez::event::EventHandler for GameState {
                     let item_num = cmd.parse::<usize>();
                     match item_num {
                         Ok(i) => {
-                            if i == 0 || i > self.user.num_items() {
+                            let total_items = self.user.total_num_items();
+                            if i == 0 || i > total_items { //If invalid item number
                                 println!("Invalid item number");
-                            } else {
+                            } else if i > self.user.num_items() { //If it's a clicker item (Items are listed first)
+                                self.user.buy_clicker_item(i - self.user.num_items() - 1);
+                            } else { //It's a normal item
                                 self.user.buy_item(i - 1);
                             }
                         }
@@ -179,7 +188,7 @@ impl ggez::event::EventHandler for GameState {
                 //Normal mode commands
                 //If empty input, treat as click (on the off chance the user has no mouse)
                 } else if cmd.is_empty() {
-                    self.user.update_spice_by_flat(1);
+                    self.user.update_spice_by_click();
                 //If "save" command, save game
                 } else if cmd == "save" {
                     save_game(&mut self.user);
@@ -214,7 +223,7 @@ impl ggez::event::EventHandler for GameState {
         _x: f32,
         _y: f32,
     ) -> Result<(), GameError> {
-        self.user.update_spice_by_flat(1);
+        self.user.update_spice_by_click();
         Ok(())
     }
 }

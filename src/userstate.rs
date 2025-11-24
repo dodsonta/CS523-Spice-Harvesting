@@ -1,4 +1,5 @@
 use crate::item::Item;
+use crate::clickeritem::ClickerItem;
 use serde::{Deserialize, Serialize};
 use std::time::{SystemTime, UNIX_EPOCH};
 
@@ -8,19 +9,25 @@ pub struct UserState {
     spice: f64,
     //Represents the items the player can purchase
     items: Vec<Item>,
+    //Represents the clicker items the player can purchase
+    clicker_items: Vec<ClickerItem>,
     //Current spice per second rate
-    cps: f64,
+    sps: f64,
+    //Current spice per click rate
+    spc: f64,
     //Last time the game was updated, in seconds since epoch
     time_last_updated: f64,
 }
 
 impl UserState {
-    //Initialize new user state to 0 spice, selected items, and 0 cps
-    pub fn new(items: Vec<Item>) -> UserState {
+    //Initialize new user state to 0 spice, selected items, and 0 sps
+    pub fn new(items: Vec<Item>, clicker_items: Vec<ClickerItem>) -> UserState {
         UserState {
             spice: 0.0,
             items,
-            cps: 0.0,
+            clicker_items,
+            sps: 0.0,
+            spc: 1.0,
             //Need to do it this way so I can serialize the time easily
             time_last_updated: SystemTime::now()
                 .duration_since(UNIX_EPOCH)
@@ -35,8 +42,8 @@ impl UserState {
     }
 
     //Gets current spice per second rate
-    pub fn get_cps(&self) -> f64 {
-        self.cps
+    pub fn get_sps(&self) -> f64 {
+        self.sps
     }
 
     //Gets last updated time
@@ -52,6 +59,11 @@ impl UserState {
     //Gets number of items
     pub fn num_items(&self) -> usize {
         self.items.len()
+    }
+
+    //Gets number of all items
+    pub fn total_num_items(&self) -> usize {
+        self.items.len() + self.clicker_items.len()
     }
 
     //List items in the user's inventory
@@ -70,6 +82,12 @@ impl UserState {
             }
             inventory_text.push_str(&format!("{}\n", item.info_in_inventory()));
         }
+        for clicker_item in self.clicker_items.iter() {
+            if !clicker_item.get_owned() {
+                continue;
+            }
+            inventory_text.push_str(&format!("{}\n", clicker_item.info_in_inventory()));
+        }
         inventory_text
     }
 
@@ -81,32 +99,39 @@ impl UserState {
             shop_text.push_str(&format!("{}. {}\n", idx, item.info_in_shop()));
             idx += 1;
         }
+        for clicker_item in self.clicker_items.iter() {
+            if clicker_item.get_owned(){//We only show unowned clicker items in shop
+                continue;
+            }
+            shop_text.push_str(&format!("{}. {}\n", idx, clicker_item.info_in_shop()));
+            idx += 1;
+        }
         shop_text
     }
 
-    //Calculates cps based on owned items
-    pub fn calculate_cps(&mut self) {
-        let mut temp_cps = 0.0;
+    //Calculates sps based on owned items
+    pub fn calculate_sps(&mut self) {
+        let mut temp_sps = 0.0;
         for item in self.items.iter() {
-            temp_cps += item.get_amt() as f64 * item.get_worth();
+            temp_sps += item.get_amt() as f64 * item.get_worth();
         }
-        self.cps = temp_cps;
+        self.sps = temp_sps;
         //Rounding to 2 decimal places since getting very long floats otherwise
-        self.cps = (self.cps * 100.0).round() / 100.0;
+        self.sps = (self.sps * 100.0).round() / 100.0;
     }
 
-    //Updates spice by a flat amount (used for clicks)
-    pub fn update_spice_by_flat(&mut self, increase: u64) {
-        self.spice += increase as f64;
+    //Update spice after a click
+    pub fn update_spice_by_click(&mut self) {
+        self.spice += self.spc;
     }
 
-    //Updates spice based on cps and time difference
+    //Updates spice based on sps and time difference
     pub fn update_spice(&mut self, dt: f64) {
         if !dt.is_finite() || dt <= 0.0 {
             return;
         }
-        self.calculate_cps();
-        self.spice += self.cps * dt;
+        self.calculate_sps();
+        self.spice += self.sps * dt;
     }
 
     //Attempts to buy an item from the shop
@@ -121,21 +146,41 @@ impl UserState {
             println!("Purchased {}", item.get_name());
         }
     }
+
+    //Attempts to buy a clicker item from the shop
+    pub fn buy_clicker_item(&mut self, clicker_item_index: usize) {
+        let clicker_item = &mut self.clicker_items[clicker_item_index];
+        //Check if enough spice to buy the clicker item
+        if clicker_item.get_cost() as f64 > self.spice {
+            println!(
+                "Not enough spice to purchase {}",
+                clicker_item.get_name()
+            );
+        } else {
+            //Purchase the clicker item, set it to owned, and increase spc
+            self.spice -= clicker_item.get_cost() as f64;
+            clicker_item.set_owned(true);
+            self.spc *= clicker_item.get_multiplier();
+            println!("Purchased {}", clicker_item.get_name());
+        }
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+
     #[test]
-    fn test_cps() {
+    fn test_sps() {
         let items = vec![
             Item::new("Tools", 1, 1.0, 10),
             Item::new("Fremen", 0, 2.0, 50),
             Item::new("Spice Harvester", 2, 10.0, 500),
         ];
-        let mut game_state = UserState::new(items);
-        game_state.calculate_cps();
-        assert_eq!(game_state.cps, 21.0);
+        let clicker_items = vec![];
+        let mut game_state = UserState::new(items, clicker_items);
+        game_state.calculate_sps();
+        assert_eq!(game_state.sps, 21.0);
     }
 
     #[test]
@@ -145,8 +190,11 @@ mod tests {
             Item::new("Fremen", 0, 2.0, 50),
             Item::new("Spice Harvester", 0, 10.0, 500),
         ];
-        let mut game_state = UserState::new(items);
-        game_state.update_spice_by_flat(100);
+        let clicker_items = vec![];
+        let mut game_state = UserState::new(items, clicker_items);
+        for _ in 0..100 {
+            game_state.update_spice_by_click();
+        }
         game_state.buy_item(0);
         assert_eq!(game_state.get_spice(), 90.0);
         assert_eq!(game_state.items[0].get_amt(), 1);
@@ -155,14 +203,17 @@ mod tests {
     }
 
     #[test]
-    fn test_update_spice() {
+    fn test_update_spice_sps() {
         let items = vec![
             Item::new("Tools", 1, 1.0, 10),
             Item::new("Fremen", 0, 2.0, 50),
             Item::new("Spice Harvester", 0, 10.0, 500),
         ];
-        let mut game_state = UserState::new(items);
-        game_state.update_spice_by_flat(100);
+        let clicker_items = vec![];
+        let mut game_state = UserState::new(items, clicker_items);
+        for _ in 0..100 {
+            game_state.update_spice_by_click();
+        }
         game_state.update_spice(2.0);
         assert!(game_state.get_spice() >= 102.0);
     }
