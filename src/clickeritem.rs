@@ -2,17 +2,15 @@ use serde::{Deserialize, Serialize};
 #[derive(Serialize, Deserialize)]
 pub struct ClickerItem {
     name: String,
-    owned: bool,
     multiplier: f64,
     cost: u32,
 }
 
 impl ClickerItem {
     //Create new clicker item (all must be hardcoded)
-    pub fn new(name: &str, owned: bool, multiplier: f64, cost: u32) -> ClickerItem {
+    pub fn new(name: &str, multiplier: f64, cost: u32) -> ClickerItem {
         ClickerItem {
             name: name.to_string(),
-            owned,
             multiplier,
             cost,
         }
@@ -23,11 +21,6 @@ impl ClickerItem {
         &self.name
     }
 
-    //Get amount of the clicker item owned
-    pub fn get_owned(&self) -> bool {
-        self.owned
-    }
-
     //Get multiplier of the clicker item
     pub fn get_multiplier(&self) -> f64 {
         self.multiplier
@@ -36,11 +29,6 @@ impl ClickerItem {
     //Get cost of the clicker item
     pub fn get_cost(&self) -> u32 {
         self.cost
-    }
-
-    //Set owned status
-    pub fn set_owned(&mut self, owned: bool) {
-        self.owned = owned;
     }
 
     //Get a string with clicker item info for inventory display
@@ -59,4 +47,26 @@ impl ClickerItem {
         )
     }
     
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_clicker_item_creation() {
+        let clicker_item = ClickerItem::new("Test Clicker", 2.0, 100);
+        assert_eq!(clicker_item.get_name(), "Test Clicker");
+        assert_eq!(clicker_item.get_multiplier(), 2.0);
+        assert_eq!(clicker_item.get_cost(), 100);
+    }
+
+    #[test]
+    fn test_clicker_item_info() {
+        let clicker_item = ClickerItem::new("Test Clicker", 2.0, 100);
+        let inventory_info = clicker_item.info_in_inventory();
+        let shop_info = clicker_item.info_in_shop();
+        assert_eq!(inventory_info, "Test Clicker: Click Multiplier: 2");
+        assert_eq!(shop_info, "Test Clicker: Cost: 100, Click Multiplier: 2");
+    }
 }

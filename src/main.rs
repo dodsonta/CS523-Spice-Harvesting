@@ -62,8 +62,8 @@ impl GameState {
                     Item::new("Sietch", 0, 260.0, 130000),
                 ];
                 let clicker_items = vec![
-                    ClickerItem::new("CHOAM Charter", false, 2.0, 100),
-                    ClickerItem::new("Guild Satellite", false, 3.0, 500),
+                    ClickerItem::new("CHOAM Charter", 2.0, 100),
+                    ClickerItem::new("Guild Satellite", 3.0, 500),
                 ];
                 UserState::new(items, clicker_items)
             }
@@ -95,9 +95,10 @@ impl ggez::event::EventHandler for GameState {
 
         //Drawing the spice and sps info
         let spice_text = format!(
-            "Spice: {:.2}\nSpice per second: {:.2}",
+            "Spice: {:.2}\nSpice per second: {:.2}\nSpice per click: {:.2}",
             self.user.get_spice(),
-            self.user.get_sps()
+            self.user.get_sps(),
+            self.user.get_spc()
         );
         //Drawing spice info at top left corner
         let spice_pos = ggez::glam::Vec2::new(offset, offset);
@@ -108,7 +109,7 @@ impl ggez::event::EventHandler for GameState {
         );
 
         //Drawing the shop/inventory info
-        let middle_y = (offset + top_text_size + 8.0) * 2.0; //Sets text to be a little under the spice info
+        let middle_y = offset + (top_text_size * 3.0) + 8.0; //Sets text to be a little under the spice info
         let middle_pos = ggez::glam::Vec2::new(offset, middle_y);
         //Draw either shop or inventory based on mode
         if self.shop_mode {
