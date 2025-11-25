@@ -3,6 +3,7 @@ use item::Item;
 mod clickeritem;
 use clickeritem::ClickerItem;
 mod userstate;
+use serde_json::{to_writer, from_reader};
 use ggez::graphics;
 use ggez::input::keyboard::{KeyCode, KeyInput};
 use ggez::*;
@@ -20,12 +21,12 @@ fn save_game(user: &mut UserState) {
         .as_secs_f64();
     user.set_time_last_updated(now);
     let file = File::create("savegame.json").expect("Unable to open or create file");
-    serde_json::to_writer(file, user).expect("Unable to write game state to file");
+    to_writer(file, user).expect("Unable to write game state to file");
 }
 
 fn load_game() -> Option<UserState> {
     let file = File::open("savegame.json").ok()?;
-    let user_state: UserState = serde_json::from_reader(file).ok()?;
+    let user_state: UserState = from_reader(file).ok()?;
     Some(user_state)
 }
 
