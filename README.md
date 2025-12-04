@@ -7,7 +7,23 @@ This is a repository for my final project in CS523 at Portland State University.
 This project is licensed under the [MIT License](LICENSE).
 
 ## About The Project
-This project is an idle game similar to Cookie Clicker and based on the book series Dune by Frank Herbert. The project uses the GGEZ game engine library to generate the game and run it dynamically. It throws up a windowed screen where you can enter commands by typing them, and clicking increases the spice amount. The game uses a save system that, on successful exit or when a "save" command is entered, creates or updates a file named savegame.json in the current folder, which is loaded the next time the game starts. 
+This project is an idle game similar to Cookie Clicker and based on the book series Dune by Frank Herbert. The project uses the GGEZ game engine library to generate the game and run it dynamically. It throws up a windowed screen where you can enter commands by typing them, and clicking increases the spice amount. The game uses a save system that, when a "save" command is entered, creates or updates a file named savegame.json in the current folder, which is loaded the next time the game starts.
+
+## Running The Project
+### Running Normally
+```bash
+cargo run
+```
+
+### Running Tests
+```bash
+cargo test
+```
+
+### Start with 1,000,000 spice
+```bash
+cargo run -- --debug
+```
 
 ## Development 
 The process was pretty smooth, and I ended up increasing the project's scope. I originally planned to keep the project in the terminal and use normal I/O to enter the commands and increase spice levels. I realized as I worked on it that this wound up being very simple, with the most complicated part being the save system and figuring out how I/O works in Rust. My solution for the I/O was very janky, and I'm sure it would have broken if I'd continued with it. My save system was originally made by hand, with me attempting to create a JSON file by hand and reading it line by line. After a few hours dealing with this, I realized there had to be a better solution and found out about the serde and serde_json libraries. 

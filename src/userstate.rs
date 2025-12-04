@@ -44,6 +44,11 @@ impl UserState {
         self.spice
     }
 
+    //Sets current spice amount
+    pub fn set_spice(&mut self, amount: f64) {
+        self.spice = amount;
+    }
+
     //Gets current spice per second rate
     pub fn get_sps(&self) -> f64 {
         self.sps

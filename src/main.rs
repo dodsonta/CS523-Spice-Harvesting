@@ -235,6 +235,10 @@ impl ggez::event::EventHandler for GameState {
 }
 
 pub fn main() {
+    //Adding a command line argument to give a bunch of spice for testing
+    let args: Vec<String> = std::env::args().collect();
+    let debug_mode = args.iter().any(|arg| arg == "--debug");
+
     //Set screen title to "Spice Harvesting"
     let screen_setup = ggez::conf::WindowSetup::default().title("Spice Harvesting");
     //Set window size to 1000x600
@@ -248,7 +252,12 @@ pub fn main() {
             .build()
             .unwrap();
     //Create game state
-    let state = GameState::new(&mut ctx).expect("Failed to create game state");
+    let mut state = GameState::new(&mut ctx).expect("Failed to create game state");
+    //If debug mode, give a bunch of spice for testing
+    if debug_mode {
+        println!("Debug mode enabled: giving 1,000,000 spice");
+        state.user.set_spice(1000000.0);
+    }
     //Run ggez event loop
     event::run(ctx, event_loop, state);
 }
